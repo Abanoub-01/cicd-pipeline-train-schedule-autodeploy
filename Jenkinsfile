@@ -1,7 +1,9 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE_NAME = "abanoub01/train-schedule"
+        //be sure to replace "willbla" with your own Docker Hub username
+        DOCKER_IMAGE_NAME = "willbla/train-schedule"
+        CANARY_REPLICAS = 0
     }
     stages {
         stage('Build') {
@@ -52,7 +54,7 @@ pipeline {
                 )
             }
         }
-        stage('SmokeTest'){
+        stage('SmokeTest') {
             when {
                 branch 'master'
             }
@@ -73,9 +75,6 @@ pipeline {
             when {
                 branch 'master'
             }
-            environment { 
-                CANARY_REPLICAS = 0
-            }
             steps {
                 milestone(1)
                 kubernetesDeploy(
@@ -86,13 +85,13 @@ pipeline {
             }
         }
     }
-   post{
-      cleanup{
-          kubernetesDeploy(
-                    kubeconfigId: 'kubeconfig',
-                    configs: 'train-schedule-kube-canary.yml',
-                    enableConfigSubstitution: true
+    post {
+        cleanup {
+            kubernetesDeploy (
+                kubeconfigId: 'kubeconfig',
+                configs: 'train-schedule-kube-canary.yml',
+                enableConfigSubstitution: true
             )
-        }     
+        }
     }
 }
